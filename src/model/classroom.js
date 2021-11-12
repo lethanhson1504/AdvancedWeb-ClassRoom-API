@@ -9,6 +9,10 @@ const classroomSchema = new mongoose.Schema( {
         type: String,
         required: true
     },
+    colorthemes: {
+        type: String,
+        default: "66B2FF"
+    },
     teachers: [{
         type: mongoose.Schema.Types.ObjectId,
         required: true

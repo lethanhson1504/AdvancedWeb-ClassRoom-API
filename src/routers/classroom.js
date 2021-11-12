@@ -23,16 +23,31 @@ router.post('/create-classroom', auth, async (req, res) => {
     }
 })
 
+//get all classroom
 router.get('/classrooms', auth, async (req, res) => {
     const userId = req.user._id
 
     try {
-        const classroom = await ClassRoom.find( { teachers: userId } )
+        const teachers_classroom = await ClassRoom.find( { teachers: userId } )
+        const students_classroom = await ClassRoom.find( { students: userId } )
 
-        if (!classroom) {
-            res.status(404).send("Classroom not found!")
-        }
-        res.status(200).send(classroom)
+        const result = teachers_classroom.concat(students_classroom)
+
+        res.status(200).send(result)
+    }
+    catch(e) { 
+        console.log(e)
+        res.status(400).send(e)
+    }
+})
+
+//invite to classroom by link
+router.get('/classrooms/:classCode', auth, async (req, res) => {
+    const userId = req.user._id
+
+    try {
+
+        res.status(200).send(req.params.classCode)
     }
     catch(e) { 
         console.log(e)
