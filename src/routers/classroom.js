@@ -6,21 +6,29 @@ const { nanoid } = require('nanoid')
 const User = require('../model/user')
 const ObjectID = require('mongodb').ObjectID
 
+const themeColors = ['#6D9886', '#D9CAB3', '#506D84', '#86340A', '#CC9B6D', '#91091E']
+
 //create new classroom
 router.post('/create-classroom', auth, async (req, res) => {
     const data = req.body
     data.code = nanoid()
+
+    if (!data.themeColor?.length) {
+        const random = Math.floor(Math.random() * themeColors.length)
+        data['themeColor'] = themeColors[random]
+    }
+
     const teacherId = req.user._id
     const classroom = new ClassRoom(data)
-    
-    classroom.teachers = classroom.teachers.concat( teacherId )
+
+    classroom.teachers = classroom.teachers.concat(teacherId)
 
     try {
         await classroom.save()
-        res.status(201).send({classroom})
+        res.status(201).send(classroom)
     }
-    catch(e) { 
-        console.log(e)
+    catch (e) {
+        console.log('CREATE CLASS:', e)
         res.status(400).send(e)
     }
 })
@@ -30,15 +38,15 @@ router.get('/classrooms', auth, async (req, res) => {
     const userId = req.user._id
 
     try {
-        const teachers_classroom = await ClassRoom.find( { teachers: userId } )
-        const students_classroom = await ClassRoom.find( { students: userId } )
+        const teachers_classroom = await ClassRoom.find({ teachers: userId })
+        const students_classroom = await ClassRoom.find({ students: userId })
 
         const result = teachers_classroom.concat(students_classroom)
 
         res.status(200).send(result)
     }
-    catch(e) { 
-        console.log(e)
+    catch (e) {
+        console.log('GET CLASSES:', e)
         res.status(400).send(e)
     }
 })
@@ -46,30 +54,30 @@ router.get('/classrooms', auth, async (req, res) => {
 //get list students and teachers in a class
 router.post('/students-teachers', auth, async (req, res) => {
     const userId = req.user._id
-    
+
     try {
         const classroom = await ClassRoom.findById(req.body.classroomId)
 
         if (classroom.teachers.toString().includes(userId) || classroom.students.toString().includes(userId)) {
             const teachers = []
             for (let i = 0; i < classroom.teachers.length; i++) {
-                const user = await User.findById( classroom.teachers[i] )
-                teachers.push( {name: user.name} )
+                const user = await User.findById(classroom.teachers[i])
+                teachers.push({ name: user.name })
             }
 
             const students = []
             for (let i = 0; i < classroom.students.length; i++) {
-                const user = await User.findById( classroom.students[i] )
-                students.push( {name: user.name} )
+                const user = await User.findById(classroom.students[i])
+                students.push({ name: user.name })
             }
 
-            res.status(200).send( {teachers, students} )
+            res.status(200).send({ teachers, students })
         }
         else {
-            res.status(400).send( {Error: "You don't have permission to do this!"} )
+            res.status(400).send({ Error: "You don't have permission to do this!" })
         }
     }
-    catch(e) { 
+    catch (e) {
         console.log(e)
         res.status(400).send(e)
     }
@@ -78,23 +86,23 @@ router.post('/students-teachers', auth, async (req, res) => {
 //edit class by teacher
 router.patch('/classrooms/edit/:classCode', auth, async (req, res) => {
     const updates = Object.keys(req.body)
-    const allowedUpdates = ['colorthemes', 'name', 'description']
+    const allowedUpdates = ['themeColor', 'name', 'description']
     const isValidOperation = updates.every((update) => allowedUpdates.includes(update))
-    
-    if(!isValidOperation) {
-        return res.status(400).send({error: 'Invalid updates!'})
+
+    if (!isValidOperation) {
+        return res.status(400).send({ error: 'Invalid updates!' })
     }
 
     const userId = req.user._id
     try {
-        const classroom = await ClassRoom.findOne( {code: req.params.classCode} )
+        const classroom = await ClassRoom.findOne({ code: req.params.classCode })
 
         if (!classroom.teachers.toString().includes(userId)) {
-            return res.status(400).send({error: "You don't have permission to do this!"})
+            return res.status(400).send({ error: "You don't have permission to do this!" })
         }
-        
+
         updates.forEach((update) => classroom[update] = req.body[update])
-    
+
         await classroom.save()
 
         res.status(200).send(classroom)
@@ -109,15 +117,15 @@ router.get('/classrooms/:classCode', auth, async (req, res) => {
     const userId = req.user._id
 
     try {
-        const classroom = await ClassRoom.findOne( {code: req.params.classCode} )
+        const classroom = await ClassRoom.findOne({ code: req.params.classCode })
 
         if (!classroom.teachers.toString().includes(userId) && !classroom.students.toString().includes(userId)) {
-            classroom.students = classroom.students.concat( userId )
+            classroom.students = classroom.students.concat(userId)
             await classroom.save()
         }
         res.status(200).send(classroom)
     }
-    catch(e) { 
+    catch (e) {
         console.log(e)
         res.status(400).send(e)
     }

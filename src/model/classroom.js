@@ -1,6 +1,6 @@
 const mongoose = require('mongoose')
 
-const classroomSchema = new mongoose.Schema( {
+const classroomSchema = new mongoose.Schema({
     name: {
         type: String,
         required: true
@@ -9,9 +9,8 @@ const classroomSchema = new mongoose.Schema( {
         type: String,
         required: true
     },
-    colorthemes: {
+    themeColor: {
         type: String,
-        default: "66B2FF"
     },
     description: {
         type: String
@@ -24,12 +23,21 @@ const classroomSchema = new mongoose.Schema( {
         type: mongoose.Schema.Types.ObjectId,
         required: true
     }],
+    banner: {
+        type: String
+    },
+    room: {
+        type: String
+    },
+    subject: {
+        type: String
+    }
 },
-{
-    timestamps: true
-})
+    {
+        timestamps: true
+    })
 
-classroomSchema.pre('save', async function(next) {
+classroomSchema.pre('save', async function (next) {
     const classroom = this
 
     console.log("change update classroom!")
