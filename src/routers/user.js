@@ -88,10 +88,13 @@ router.get('/users/:id',(req, res)=>{
 
 //create new user
 router.post('/users', async (req, res) => {
-    const user = new User(req.body)
-
     try {
-        //await user.save()
+        const duplicatedEmail = await User.findOne({email: req.body.email})
+        if(duplicatedEmail) {
+            return res.status(400).send({error: "This email has been registered!"})
+        }
+
+        const user = new User(req.body)
         const token = await user.generateAuthToken()
         
         res.status(201).send({user, token})
@@ -102,10 +105,10 @@ router.post('/users', async (req, res) => {
     }
 })
 
-//edit user
+//edit user profile
 router.patch('/users/me', auth, async (req, res) => {
     const updates = Object.keys(req.body)
-    const allowedUpdates = ['name', 'email', 'password', 'age']
+    const allowedUpdates = ['name', 'email', 'password']
     const isValidOperation = updates.every((update) => allowedUpdates.includes(update))
     
     if(!isValidOperation) {
