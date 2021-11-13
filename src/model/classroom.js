@@ -13,6 +13,9 @@ const classroomSchema = new mongoose.Schema( {
         type: String,
         default: "66B2FF"
     },
+    description: {
+        type: String
+    },
     teachers: [{
         type: mongoose.Schema.Types.ObjectId,
         required: true

@@ -75,12 +75,41 @@ router.post('/students-teachers', auth, async (req, res) => {
     }
 })
 
+//edit class by teacher
+router.patch('/classrooms/edit/:classCode', auth, async (req, res) => {
+    const updates = Object.keys(req.body)
+    const allowedUpdates = ['colorthemes', 'name', 'description']
+    const isValidOperation = updates.every((update) => allowedUpdates.includes(update))
+    
+    if(!isValidOperation) {
+        return res.status(400).send({error: 'Invalid updates!'})
+    }
+
+    const userId = req.user._id
+    try {
+        const classroom = await ClassRoom.findOne( {code: req.params.classCode} )
+
+        if (!classroom.teachers.toString().includes(userId)) {
+            return res.status(400).send({error: "You don't have permission to do this!"})
+        }
+        
+        updates.forEach((update) => classroom[update] = req.body[update])
+    
+        await classroom.save()
+
+        res.status(200).send(classroom)
+
+    } catch (e) {
+        res.status(400).send(e)
+    }
+})
+
 //invite to classroom by link
 router.get('/classrooms/:classCode', auth, async (req, res) => {
     const userId = req.user._id
 
     try {
-        const classroom = await ClassRoom.findById(req.params.classCode)
+        const classroom = await ClassRoom.findOne( {code: req.params.classCode} )
 
         if (!classroom.teachers.toString().includes(userId) && !classroom.students.toString().includes(userId)) {
             classroom.students = classroom.students.concat( userId )
