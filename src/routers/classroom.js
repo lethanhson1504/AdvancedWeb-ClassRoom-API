@@ -133,7 +133,7 @@ router.patch('/classrooms/edit/:classCode', auth, async (req, res) => {
 })
 
 //invite to classroom by link
-router.get('/classrooms/:classCode', auth, async (req, res) => {
+router.get('/classrooms/join/:classCode', auth, async (req, res) => {
     const userId = req.user._id
 
     try {
