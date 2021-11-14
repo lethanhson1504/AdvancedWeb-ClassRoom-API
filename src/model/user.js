@@ -7,9 +7,13 @@ const userSchema = new mongoose.Schema({
     name: {
         type: String
     },
+    accountType: {
+        required:false,
+        type: String
+    },
     password: {
         type: String,
-        required:true,
+        required:false,
         trim:true,
         minlength: 7,
         validate(value){
@@ -17,6 +21,11 @@ const userSchema = new mongoose.Schema({
                 throw new Error("The pass word could not contains \"password\"!")
             }
         }
+    },
+    socialId: {
+        type: String,
+        required:false,
+        trim:true,                
     },
     email: {
         type: String,
@@ -87,6 +96,27 @@ userSchema.statics.findByCredentials = async (email, password) => {
         throw new Error("Unable to login!")
     }
 
+    return user
+} 
+
+userSchema.statics.findByGoogleAccount = async (name, email, id) => {
+    var user = await User.findOne({email})
+
+    if (!user) {        
+        body = {
+            name: name,
+            email: email,
+            socialId: id,
+            accountType: "social"
+          }
+          console.log("[Not a account, create user with] ", body)
+        user = new User(body)
+        user.save()
+    } 
+    
+    if (user.accountType == undefined || user.accountType != "social") { 
+        throw new Error("Unable to login!")        
+    }
     return user
 } 
 

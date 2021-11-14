@@ -14,7 +14,6 @@ app.use(express.json())
 app.use(UserRouter)
 app.use(ClassRoomRouter)
 
-
 app.listen(port, () => {
     console.log("Server is listening on " + port)
 })
