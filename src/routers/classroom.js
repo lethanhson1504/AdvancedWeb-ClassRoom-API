@@ -51,6 +51,26 @@ router.get('/classrooms', auth, async (req, res) => {
     }
 })
 
+//get classroom by id
+router.get('/classrooms/:id', auth, async (req, res)=>{
+    const userId = req.user._id
+
+    try {
+        const classroom = await ClassRoom.findById(req.params.id)
+
+        if (classroom.teachers.toString().includes(userId) || classroom.students.toString().includes(userId)) {
+            res.status(200).send(classroom)
+        }
+        else {
+            res.status(400).send({ Error: "You don't have permission to do this!" })
+        }
+    }
+    catch (e) {
+        console.log(e)
+        res.status(400).send(e)
+    }
+})
+
 //get list students and teachers in a class
 router.post('/students-teachers', auth, async (req, res) => {
     const userId = req.user._id
