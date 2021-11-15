@@ -151,4 +151,34 @@ router.get('/classrooms/join/:classCode', auth, async (req, res) => {
     }
 })
 
+//invite teacher to classroom by link via email
+router.post('/classrooms/invite-teacher', auth, async (req, res) => {
+    const userId = req.user._id
+    console.log(req.user.email)
+
+    if (req.user.email !== req.body.email) {
+        return res.status(400).send( {error: "You don't have permission to do this!"} )
+    }
+
+    try {
+        const classroom = await ClassRoom.findOne({ code: req.body.classCode })
+
+        if (!classroom.teachers.toString().includes(userId)) {
+            classroom.teachers = classroom.teachers.concat(userId)
+            await classroom.save()    
+        }
+        if (classroom.students.toString().includes(userId)) {
+            const index = classroom.students.indexOf(userId)
+            classroom.students.splice(index, 1);
+            await classroom.save()
+        }
+
+        return res.status(200).send(classroom)
+    }
+    catch (e) {
+        console.log(e)
+        res.status(400).send(e)
+    }
+})
+
 module.exports = router
