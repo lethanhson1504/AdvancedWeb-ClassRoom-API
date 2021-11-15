@@ -107,6 +107,11 @@ router.post('/users', async (req, res) => {
             return res.status(400).send({error: "This email has been registered!"})
         }
 
+        const duplicatedStudentId = await User.findOne( {studentId: req.body.studentId} )
+        if (duplicatedStudentId) {
+            return res.status(400).send( {error: "Duplicated student id!"} )
+        }
+
         const user = new User(req.body)
         const token = await user.generateAuthToken()
         
@@ -121,7 +126,7 @@ router.post('/users', async (req, res) => {
 //edit user profile
 router.patch('/users/me', auth, async (req, res) => {
     const updates = Object.keys(req.body)
-    const allowedUpdates = ['name', 'email', 'password']
+    const allowedUpdates = ['name', 'email', 'password', 'studentId']
     const isValidOperation = updates.every((update) => allowedUpdates.includes(update))
     
     if(!isValidOperation) {
@@ -129,6 +134,12 @@ router.patch('/users/me', auth, async (req, res) => {
     }
     
     try {
+        if (req.user.studentId !== req.body.studentId) {
+            const duplicatedStudentId = await User.count( {studentId: req.body.studentId} )
+            if (duplicatedStudentId > 0) {
+                return res.status(400).send( {error: "Duplicated student id!"} )
+            }
+        }
 
         updates.forEach((update) => req.user[update] = req.body[update])
     

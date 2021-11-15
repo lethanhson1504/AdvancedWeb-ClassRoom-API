@@ -39,6 +39,11 @@ const userSchema = new mongoose.Schema({
             }
         }
     },
+    studentId: {
+        required:false,
+        type: String,
+        unique: true
+    },
     tokens: [{
         token: {
             type: String,

@@ -82,13 +82,13 @@ router.post('/students-teachers', auth, async (req, res) => {
             const teachers = []
             for (let i = 0; i < classroom.teachers.length; i++) {
                 const user = await User.findById(classroom.teachers[i])
-                teachers.push({ name: user.name })
+                teachers.push({ name: user.name, email: user.email, id: user._id})
             }
 
             const students = []
             for (let i = 0; i < classroom.students.length; i++) {
                 const user = await User.findById(classroom.students[i])
-                students.push({ name: user.name })
+                students.push({ name: user.name, email: user.email, id: user._id, studentId: user.studentId  })
             }
 
             res.status(200).send({ teachers, students })
