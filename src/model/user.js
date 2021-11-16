@@ -1,6 +1,6 @@
 const mongoose = require('mongoose')
 const bcrypt = require('bcryptjs')
-const validator = require("email-validator");
+const validator = require("email-validator")
 const jwt = require('jsonwebtoken')
 
 const userSchema = new mongoose.Schema({
@@ -8,24 +8,24 @@ const userSchema = new mongoose.Schema({
         type: String
     },
     accountType: {
-        required:false,
+        required: false,
         type: String
     },
     password: {
         type: String,
-        required:false,
-        trim:true,
-        minlength: 7,
-        validate(value){
-            if(value.includes("password")){
+        required: false,
+        trim: true,
+        minlength: 6,
+        validate(value) {
+            if (value.includes("password")) {
                 throw new Error("The pass word could not contains \"password\"!")
             }
         }
     },
     socialId: {
         type: String,
-        required:false,
-        trim:true,                
+        required: false,
+        trim: true,
     },
     email: {
         type: String,
@@ -33,14 +33,14 @@ const userSchema = new mongoose.Schema({
         required: true,
         trim: true,
         lowercase: true,
-        validate(value){
-            if(!validator.validate(value)){
+        validate(value) {
+            if (!validator.validate(value)) {
                 throw new Error("Invalid email!")
             }
         }
     },
     studentId: {
-        required:false,
+        required: false,
         type: String,
         unique: true
     },
@@ -53,11 +53,11 @@ const userSchema = new mongoose.Schema({
     avatar: {
         type: Buffer
     }
-},{
+}, {
     timestamps: true
 })
 
-userSchema.pre('save', async function(next) {
+userSchema.pre('save', async function (next) {
     const user = this
 
     if (user.isModified('password')) {
@@ -79,17 +79,17 @@ userSchema.methods.toJSON = function () {
 
 userSchema.methods.generateAuthToken = async function () {
 
-    const token = jwt.sign({ _id: this._id.toString()}, process.env.JWT_SECRET)
+    const token = jwt.sign({ _id: this._id.toString() }, process.env.JWT_SECRET)
 
     this.tokens = this.tokens.concat({ token })
-    
+
     await this.save()
 
     return token
 }
 
 userSchema.statics.findByCredentials = async (email, password) => {
-    const user = await User.findOne({email})
+    const user = await User.findOne({ email })
 
     if (!user) {
         throw new Error('Unable to login!')
@@ -97,33 +97,33 @@ userSchema.statics.findByCredentials = async (email, password) => {
 
     const isMatch = await bcrypt.compare(password, user.password)
 
-    if(!isMatch) {
+    if (!isMatch) {
         throw new Error("Unable to login!")
     }
 
     return user
-} 
+}
 
 userSchema.statics.findByGoogleAccount = async (name, email, id) => {
-    var user = await User.findOne({email})
+    var user = await User.findOne({ email })
 
-    if (!user) {        
+    if (!user) {
         body = {
             name: name,
             email: email,
             socialId: id,
             accountType: "social"
-          }
-          console.log("[Not a account, create user with] ", body)
+        }
+        console.log("[Not a account, create user with] ", body)
         user = new User(body)
         user.save()
-    } 
-    
-    if (user.accountType == undefined || user.accountType != "social") { 
-        throw new Error("Unable to login!")        
+    }
+
+    if (user.accountType == undefined || user.accountType != "social") {
+        throw new Error("Unable to login!")
     }
     return user
-} 
+}
 
 const User = mongoose.model("User", userSchema)
 
