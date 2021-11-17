@@ -106,7 +106,7 @@ router.post('/students-teachers', auth, async (req, res) => {
 //edit class by teacher
 router.patch('/classrooms/edit/:classCode', auth, async (req, res) => {
     const updates = Object.keys(req.body)
-    const allowedUpdates = ['themeColor', 'name', 'description', 'room', 'subject']
+    const allowedUpdates = ['themeColor', 'name', 'description', 'room', 'subject', 'banner']
     const isValidOperation = updates.every((update) => allowedUpdates.includes(update))
 
     if (!isValidOperation) {
