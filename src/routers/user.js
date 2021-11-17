@@ -107,9 +107,11 @@ router.post('/users', async (req, res) => {
             return res.status(400).send({ error: "This email has been registered!" })
         }
 
-        const duplicatedStudentId = await User.findOne({ studentId: req.body.studentId })
-        if (duplicatedStudentId) {
-            return res.status(400).send({ error: "Duplicated student id!" })
+        if (req.body.studentId) {
+            const duplicatedStudentId = await User.findOne({ studentId: req.body.studentId })
+            if (duplicatedStudentId) {
+                return res.status(400).send({ error: "Duplicated student id!" })
+            }
         }
 
         const user = new User(req.body)
