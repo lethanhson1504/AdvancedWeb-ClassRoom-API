@@ -268,7 +268,7 @@ router.post("/reorder-assignments", auth, async (req, res) => {
   }
 });
 
-//update assignments of class
+//update assignment of class
 router.post("/update-assignment", auth, async (req, res) => {
   try {
     const classroom = await ClassRoom.findById(req.body.classroomId);
@@ -300,7 +300,7 @@ router.post("/update-assignment", auth, async (req, res) => {
   }
 });
 
-//delete assignments of class by id
+//delete assignment of class by id
 router.post("/delete-assignment", auth, async (req, res) => {
   try {
     const classroom = await ClassRoom.findById(req.body.classroomId);
