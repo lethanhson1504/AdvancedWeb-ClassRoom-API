@@ -39,8 +39,8 @@ router.post('/users/login', async (req, res) => {
 //login with google
 router.post('/users/loginWithGoogle', async (req, res) => {
     try {
-        const user = await User.findByGoogleAccount(req.body.name, req.body.email, req.body.id)
-        user
+        console.log("Login with google", req.body)
+        const user = await User.findByGoogleAccount(req.body.name, req.body.email, req.body.id)        
 
         token = await user.generateAuthToken()
         res.send({ user, token })

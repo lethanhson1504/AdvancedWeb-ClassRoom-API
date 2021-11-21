@@ -23,6 +23,10 @@ const classroomSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         required: true
     }],
+    assignments: [{
+        type: Object,
+        required: true
+    }],
     banner: {
         type: String
     },
