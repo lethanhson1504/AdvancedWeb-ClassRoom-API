@@ -301,7 +301,7 @@ router.post("/update-assignment", auth, async (req, res) => {
 });
 
 //delete assignments of class by id
-router.post("/update-assignment", auth, async (req, res) => {
+router.post("/delete-assignment", auth, async (req, res) => {
   try {
     const classroom = await ClassRoom.findById(req.body.classroomId);
     if (classroom) {
