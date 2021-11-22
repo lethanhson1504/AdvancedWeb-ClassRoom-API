@@ -245,12 +245,12 @@ router.post("/create-assignment", auth, async (req, res) => {
         classroom.assignments.total = req.body.total;
       }
 
-      var sum = classroom.assignments.sum;
-      const remain = classroom.assignments.total - sum;
-      if (remain >= data.point) {
+      let sum = Number(classroom.assignments.sum);
+      const remain = Number(classroom.assignments.total) - sum;
+      if (remain >= Number(data.point)) {
         classroom.assignments = {
-          total: classroom.assignments.total,
-          sum: sum + data.point,
+          total: Number(classroom.assignments.total),
+          sum: sum + Number(data.point),
           params: classroom.assignments.params.concat(assignment),
         };
         await classroom.save();
@@ -329,9 +329,9 @@ router.post("/update-assignment", auth, async (req, res) => {
       // var params = classroom.assignments.params
 
 
-      var sum = classroom.assignments.sum - classroom.assignments.params[index].point;
+      let sum = Number(classroom.assignments.sum) - Number(classroom.assignments.params[index].point);
       
-      const remain = classroom.assignments.total - sum;
+      const remain = Number(classroom.assignments.total) - sum;
       console.log(classroom.assignments.params[index].point, sum, remain, data.point)
       classroom.assignments.params[index] = {
         code: classroom.assignments.params[index].code,
@@ -344,7 +344,7 @@ router.post("/update-assignment", auth, async (req, res) => {
         await classroom.save();
         classroom.assignments = {
           total: classroom.assignments.total,
-          sum: sum + data.point,
+          sum: sum + Number(data.point),
           params: pr,
         };
         await classroom.save();
@@ -375,8 +375,8 @@ router.post("/delete-assignment", auth, async (req, res) => {
       }
 
       var params = [...classroom.assignments.params];
-      var sum = classroom.assignments.sum;
-      const newSum = sum - params[index].point;
+      var sum = Number(classroom.assignments.sum);
+      const newSum = sum - Number(params[index].point);
       params.splice(index, 1);
       
       classroom.assignments = {
