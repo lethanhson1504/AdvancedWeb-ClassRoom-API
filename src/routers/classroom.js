@@ -237,12 +237,7 @@ router.post("/create-assignment", auth, async (req, res) => {
     if (classroom) {
       const data = req.body.assignment;
       const assignment = { code: nanoid(), name: data.name, point: data.point };
-      if (classroom.assignments === undefined) {
-        classroom.assignments = {
-          total: 0,
-          params: [],
-        };
-      }
+     
       if (classroom.assignments.params === undefined) {
         classroom.assignments.params = []
       }
@@ -252,8 +247,10 @@ router.post("/create-assignment", auth, async (req, res) => {
 
       classroom.assignments = {
         total: classroom.assignments.total,
+        sum: classroom.assignments.sum,
         params: classroom.assignments.params.concat(assignment),
       };
+      
       console.log(assignment);
       await classroom.save();
 
