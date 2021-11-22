@@ -29,7 +29,11 @@ router.post("/create-classroom", auth, async (req, res) => {
   const classroom = new ClassRoom(data);
 
   classroom.teachers = classroom.teachers.concat(teacherId);
-  classroom.assignments = classroom.assignments.concat();
+  classroom.assignments = {
+    total: 0,
+    sum: 0,
+    params: [],
+  };
   try {
     await classroom.save();
     res.status(201).send(classroom);
