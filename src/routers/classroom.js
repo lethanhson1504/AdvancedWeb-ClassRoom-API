@@ -208,7 +208,7 @@ router.post("/classrooms/invite-teacher", auth, async (req, res) => {
 
 // MARK: Assignment
 
-//get class assignments
+//get all assignments
 router.get("/assignments", auth, async (req, res) => {
   const userId = req.user._id;
   console.log("Class assignment", req.body);
@@ -232,20 +232,61 @@ router.post("/create-assignment", auth, async (req, res) => {
     const classroom = await ClassRoom.findById(req.body.classroomId);
     if (classroom) {
       const data = req.body.assignment;
-      const assignment = {
-        code: nanoid(),
-        name: data.name,
-        point: data.point,
+      const assignment = { code: nanoid(), name: data.name, point: data.point };
+      if (classroom.assignments === undefined) {
+        classroom.assignments = {
+          total: 0,
+          params: [],
+        };
+      }
+      if (req.body.params === undefined) {
+        classroom.assignments.params = []
+      }
+      if (req.body.total !== undefined) {
+        classroom.assignments.total = req.body.total 
+      }
+
+      classroom.assignments = {
+        total: classroom.assignments.total,
+        params: classroom.assignments.params.concat(assignment),
       };
 
-      classroom.assignments = classroom.assignments.concat(assignment);
-
       await classroom.save();
+
       return res.status(201).send(classroom);
     }
     return res.status(400).send("No class found!");
   } catch (e) {
-    console.log("CREATE ASSIGNMENT FOR CLASS:", req.body, e);
+    console.log("Create assignment failed:", req.body, e);
+    return res.status(400).send(e);
+  }
+});
+
+//set total point
+router.post("/set-assignment-total-point", auth, async (req, res) => {
+  try {
+    const classroom = await ClassRoom.findById(req.body.classroomId);
+    if (classroom) {      
+      
+      if (classroom.assignments === undefined) {
+        classroom.assignments = {
+          total: 0,
+          params: [],
+        };
+      }
+      
+      classroom.assignments = {
+        total: req.body.total,
+        params: classroom.assignments.params,
+      };
+
+      await classroom.save();
+      console.log(classroom.assignments.params);
+      return res.status(201).send(classroom);
+    }
+    return res.status(400).send("No class found!");
+  } catch (e) {
+    console.log("Set total point fail:", req.body, e);
     return res.status(400).send(e);
   }
 });
@@ -255,15 +296,18 @@ router.post("/reorder-assignments", auth, async (req, res) => {
   try {
     const classroom = await ClassRoom.findById(req.body.classroomId);
     if (classroom) {
-      const assignmentList = req.body.assignments;
+      const reorderedParams = req.body.assignments;      
+      classroom.assignments = {
+        total: classroom.assignments.total,
+        params: reorderedParams,
+      };
 
-      classroom.assignments = assignmentList;
       await classroom.save();
       return res.status(201).send(classroom);
     }
     return res.status(400).send("No class found!");
   } catch (e) {
-    console.log("reorder:", req.body, e);
+    console.log("Reorder fail:", req.body, e);
     return res.status(400).send(e);
   }
 });
@@ -273,23 +317,25 @@ router.post("/update-assignment", auth, async (req, res) => {
   try {
     const classroom = await ClassRoom.findById(req.body.classroomId);
     if (classroom) {
-      const index = classroom.assignments.findIndex(
+      const index = classroom.assignments.params.findIndex(
         (assignment) => assignment.code == req.body.assignmentCode
       );
       if (index === -1) {
         return res.status(400).send("No assignment found!");
       }
-
-      var assignments = [...classroom.assignments];
-      console.log("asignment clone", assignments);
-      assignments[index] = {
-        code: assignments[index].code,
+      // var params = classroom.assignments.params
+      classroom.assignments.params[index] = {
+        code: classroom.assignments.params[index].code,
         name: req.body.assignment.name,
         point: req.body.assignment.point,
       };
 
-      classroom.assignments = assignments;
-      console.log(classroom.assignments);
+      classroom.assignments = {
+        total: classroom.assignments.total,
+        params: classroom.assignments.params.concat(null),
+      };
+
+      
       await classroom.save();
       return res.status(201).send(classroom);
     }
@@ -305,18 +351,21 @@ router.post("/delete-assignment", auth, async (req, res) => {
   try {
     const classroom = await ClassRoom.findById(req.body.classroomId);
     if (classroom) {
-      const index = classroom.assignments.findIndex(
+      const index = classroom.assignments.params.findIndex(
         (assignment) => assignment.code == req.body.assignmentCode
       );
       if (index === -1) {
         return res.status(400).send("No assignment found!");
       }
 
-      var assignments = [...classroom.assignments];
-      assignments.splice(index, 1);
+      var params = [...classroom.assignments.params];
+      params.splice(index, 1);
 
-      classroom.assignments = assignments;
-      console.log(classroom.assignments);
+      classroom.assignments = {
+        total: classroom.assignments.total,
+        params: params,
+      };
+      
       await classroom.save();
       return res.status(201).send(classroom);
     }
