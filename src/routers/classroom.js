@@ -239,7 +239,7 @@ router.post("/create-assignment", auth, async (req, res) => {
           params: [],
         };
       }
-      if (req.body.params === undefined) {
+      if (classroom.assignments.params === undefined) {
         classroom.assignments.params = []
       }
       if (req.body.total !== undefined) {
@@ -250,7 +250,7 @@ router.post("/create-assignment", auth, async (req, res) => {
         total: classroom.assignments.total,
         params: classroom.assignments.params.concat(assignment),
       };
-
+      console.log(assignment);
       await classroom.save();
 
       return res.status(201).send(classroom);
