@@ -30,7 +30,7 @@ router.post("/create-classroom", auth, async (req, res) => {
 
   classroom.teachers = classroom.teachers.concat(teacherId);
   classroom.assignments = {
-    total: 0,
+    total: 100,
     sum: 0,
     params: [],
   };
