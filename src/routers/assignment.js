@@ -213,8 +213,19 @@ router.post("/set-grade-list", auth, async (req, res) => {
       return res.status(400).send("No assignment found!");
     }
 
-    assignmentCollection.params[index].gradeList = data.gradeList;
+    // assignmentCollection.params[index].gradeList = data.gradeList;
+    data.gradeList.forEach(gradeInfo => {
+      const gradeIndex = assignmentCollection.params[index].gradeList.findIndex(
+        (grade) => grade.studentId == gradeInfo.studentId
+      );
+      if (gradeIndex === -1 || gradeIndex == undefined) {
+        assignmentCollection.params[index].gradeList = assignmentCollection.params[index].gradeList.concat(gradeInfo) 
+      } else {
+        assignmentCollection.params[index].gradeList[gradeIndex].grade = gradeInfo.grade;
+      }
 
+      
+    })
     await assignmentCollection.save();
     return res.status(201).send(assignmentCollection);
   } catch (e) {
@@ -299,11 +310,11 @@ router.post("/set-student-list", auth, async (req, res) => {
   }
 });
 
-//set student list
-router.get("/get-grade-board", auth, async (req, res) => {
+//get grade list
+router.get("/get-grade-board/:classroomId", auth, async (req, res) => {
   try {
     console.log(req.params);
-    const classroom = await ClassRoom.findById(req.body.classroomId);
+    const classroom = await ClassRoom.findById(req.params.classroomId);
     if (!classroom) {
       return res.status(400).send("No class found!");
     }
@@ -343,7 +354,7 @@ router.get("/get-grade-board", auth, async (req, res) => {
       allGradeList.forEach(gradeList => {
         const gradeIndex = gradeList.findIndex(
           (gradeInfo) => gradeInfo.studentId === part.studentId
-        );
+        );        
         if (gradeIndex >= 0) {
           this[index].assignmentGrade.push(gradeList[gradeIndex].grade);
           this[index].total += gradeList[gradeIndex].grade
