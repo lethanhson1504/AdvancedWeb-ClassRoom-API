@@ -7,6 +7,10 @@ const userSchema = new mongoose.Schema({
     name: {
         type: String
     },
+    realName: {
+        required: false,
+        type: String
+    },
     accountType: {
         required: false,
         type: String
@@ -122,6 +126,16 @@ userSchema.statics.findByGoogleAccount = async (name, email, id) => {
     if (user.accountType == undefined || user.accountType != "social") {
         throw new Error("Unable to login!")
     }
+    return user
+}
+
+userSchema.statics.findByStudentId = async (studentId) => {
+    var user = await User.findOne({ studentId })
+
+    if (!user) {
+        return undefined;
+    }
+
     return user
 }
 

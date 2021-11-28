@@ -112,7 +112,7 @@ router.post("/students-teachers", auth, async (req, res) => {
         });
       }
 
-      res.status(200).send({ teachers, students });
+      res.status(200).send({ teachers, students, unmappedStudents: classroom.unmappedStudents });
     } else {
       res.status(400).send({ Error: "You don't have permission to do this!" });
     }
