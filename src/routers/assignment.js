@@ -56,13 +56,11 @@ router.post("/create-assignment", auth, async (req, res) => {
         await assignment.save();
         return res.status(201).send(assignment);
       }
-      return res
-        .status(400)
-        .send({
-          msg: "Failed to create assignment",
-          remain: remain,
-          addPoint: data.point,
-        });
+      return res.status(400).send({
+        msg: "Failed to create assignment",
+        remain: remain,
+        addPoint: data.point,
+      });
     }
     return res.status(400).send("No class found!");
   } catch (e) {
@@ -82,13 +80,11 @@ router.post("/set-assignment-total-point", auth, async (req, res) => {
         await assignment.save();
         return res.status(201).send(assignment);
       }
-      return res
-        .status(400)
-        .send({
-          msg: "Failed",
-          sum: classroom.assignments.sum,
-          newTotal: req.body.total,
-        });
+      return res.status(400).send({
+        msg: "Failed",
+        sum: classroom.assignments.sum,
+        newTotal: req.body.total,
+      });
     }
     return res.status(400).send("No class found!");
   } catch (e) {
@@ -173,15 +169,15 @@ router.post("/delete-assignment", auth, async (req, res) => {
       const index = assignmentCollection.params.findIndex(
         (assignment) => assignment._id == req.body.assignmentCode
       );
-        console.log(index)
+      console.log(index);
       if (index === -1 || index == undefined) {
         return res.status(400).send("No assignment found!");
       }
 
       let sum =
         assignmentCollection.sum - assignmentCollection.params[index].point;
+      assignmentCollection.params = assignmentCollection.params.slice(index, 1);
 
-        assignmentCollection.params = assignmentCollection.params.slice(index, 1);
       assignmentCollection.sum = sum;
 
       await assignmentCollection.save();
@@ -190,6 +186,68 @@ router.post("/delete-assignment", auth, async (req, res) => {
     return res.status(400).send("No class found!");
   } catch (e) {
     console.log("Delete fail:", req.body, e);
+    return res.status(400).send(e);
+  }
+});
+
+//set grade list for assigment
+router.post("/set-grade-list", auth, async (req, res) => {
+  try {
+    const classroom = await ClassRoom.findById(req.body.classroomId);
+    if (!classroom) {
+      return res.status(400).send("No class found!");
+    }
+
+    const assignmentCollection = await Assignment.findById(
+      classroom.assignments._id
+    );
+
+    const data = req.body;
+
+    const index = assignmentCollection.params.findIndex(
+      (assignment) => assignment._id == data.assignmentCode
+    );
+
+    console.log(index);
+    if (index === -1 || index == undefined) {
+      return res.status(400).send("No assignment found!");
+    }
+
+    assignmentCollection.params[index].gradeList = data.gradeList;
+    
+    await assignmentCollection.save();
+    return res.status(201).send(assignmentCollection);
+  } catch (e) {
+    console.log("Set grade list fail fail:", req.body, e);
+    return res.status(400).send(e);
+  }
+});
+
+//get grade list for assigment
+router.get("/grade-list", auth, async (req, res) => {
+  try {
+    const classroom = await ClassRoom.findById(req.body.classroomId);
+    if (!classroom) {
+      return res.status(400).send("No class found!");
+    }
+
+    const assignmentCollection = await Assignment.findById(
+      classroom.assignments._id
+    );
+
+    const data = req.body;
+
+    const index = assignmentCollection.params.findIndex(
+      (assignment) => assignment._id == data.assignmentCode
+    );
+
+    
+    if (index === -1 || index == undefined) {
+      return res.status(400).send("No assignment found!");
+    }    
+    return res.status(201).send(assignmentCollection.params[index].gradeList);
+  } catch (e) {
+    console.log("Set grade list fail fail:", req.body, e);
     return res.status(400).send(e);
   }
 });

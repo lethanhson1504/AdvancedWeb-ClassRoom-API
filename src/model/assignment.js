@@ -15,13 +15,12 @@ const assignmentSchema = new mongoose.Schema(
       default: 0
     },
     params: [
-      {
-        code: String,
+      {        
         name: String,
         point: Number,
         gradeList: [
           {
-            id: Number,
+            studentId: String,
             grade: Number,
           },
         ],
