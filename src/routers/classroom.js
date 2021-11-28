@@ -1,5 +1,7 @@
 const express = require("express");
+const Assignment = require("../model/assignment");
 const ClassRoom = require("../model/classroom");
+
 const router = new express.Router();
 const auth = require("../middleware/auth");
 const { nanoid } = require("nanoid");
@@ -29,12 +31,13 @@ router.post("/create-classroom", auth, async (req, res) => {
   const classroom = new ClassRoom(data);
 
   classroom.teachers = classroom.teachers.concat(teacherId);
-  classroom.assignments = {
-    total: 100,
-    sum: 0,
-    params: [],
-  };
+  const assignment = new Assignment();
+  assignment.classroomId = classroom._id;
+
+  classroom.assignments = assignment._id;
+
   try {
+    await assignment.save();
     await classroom.save();
     res.status(201).send(classroom);
   } catch (e) {
@@ -210,188 +213,4 @@ router.post("/classrooms/invite-teacher", auth, async (req, res) => {
   }
 });
 
-// MARK: Assignment
-
-//get all assignments
-router.get("/assignments", auth, async (req, res) => {
-  const userId = req.user._id;
-  console.log("Class assignment", req.body);
-
-  try {
-    const classroom = await ClassRoom.findById(req.body.classroomId);
-    if (classroom) {
-      result = classroom.assignments;
-      return res.status(200).send(result);
-    }
-    return res.status(400).send("No class found!");
-  } catch (e) {
-    console.log(e);
-    return res.status(400).send(e);
-  }
-});
-
-//create new assignment
-router.post("/create-assignment", auth, async (req, res) => {
-  try {
-    const classroom = await ClassRoom.findById(req.body.classroomId);
-    if (classroom) {
-      const data = req.body.assignment;
-      const assignment = { code: nanoid(), name: data.name, point: data.point };
-
-      if (classroom.assignments.params === undefined) {
-        classroom.assignments.params = [];
-      }
-      if (req.body.total !== undefined) {
-        classroom.assignments.total = req.body.total;
-      }
-
-      let sum = Number(classroom.assignments.sum);
-      const remain = Number(classroom.assignments.total) - sum;
-      if (remain >= Number(data.point)) {
-        classroom.assignments = {
-          total: Number(classroom.assignments.total),
-          sum: sum + Number(data.point),
-          params: classroom.assignments.params.concat(assignment),
-        };
-        await classroom.save();
-        return res.status(201).send(classroom);
-      }
-      return res
-        .status(400)
-        .send({ msg: "Failed", remain: remain, addPoint: data.point });
-    }
-    return res.status(400).send("No class found!");
-  } catch (e) {
-    console.log("Create assignment failed:", req.body, e);
-    return res.status(400).send(e);
-  }
-});
-
-//set total point
-router.post("/set-assignment-total-point", auth, async (req, res) => {
-  try {
-    const classroom = await ClassRoom.findById(req.body.classroomId);
-    if (classroom) {
-      if (req.body.total >= classroom.assignments.sum) {
-        classroom.assignments = {
-          total: req.body.total,
-          sum: classroom.assignments.sum,
-          params: classroom.assignments.params,
-        };
-        await classroom.save();
-        return res.status(201).send(classroom);
-      }
-      return res
-      .status(400)
-      .send({ msg: "Failed", sum: classroom.assignments.sum, newTotal: req.body.total });
-    }
-    return res.status(400).send("No class found!");
-  } catch (e) {
-    console.log("Set total point fail:", req.body, e);
-    return res.status(400).send(e);
-  }
-});
-
-//reorder assignments of class
-router.post("/reorder-assignments", auth, async (req, res) => {
-  try {
-    const classroom = await ClassRoom.findById(req.body.classroomId);
-    if (classroom) {
-      const reorderedParams = req.body.assignments;
-      classroom.assignments = {
-        total: classroom.assignments.total,
-        sum: classroom.assignments.sum,
-        params: reorderedParams,
-      };
-
-      await classroom.save();
-      return res.status(201).send(classroom);
-    }
-    return res.status(400).send("No class found!");
-  } catch (e) {
-    console.log("Reorder fail:", req.body, e);
-    return res.status(400).send(e);
-  }
-});
-
-//update assignment of class
-router.post("/update-assignment", auth, async (req, res) => {
-  try {
-    const classroom = await ClassRoom.findById(req.body.classroomId);
-    if (classroom) {
-      const data = req.body.assignment;
-      const index = classroom.assignments.params.findIndex(
-        (assignment) => assignment.code == req.body.assignmentCode
-      );
-      if (index === -1) {
-        return res.status(400).send("No assignment found!");
-      }
-      // var params = classroom.assignments.params
-
-
-      let sum = Number(classroom.assignments.sum) - Number(classroom.assignments.params[index].point);
-      
-      const remain = Number(classroom.assignments.total) - sum;
-      console.log(classroom.assignments.params[index].point, sum, remain, data.point)
-      classroom.assignments.params[index] = {
-        code: classroom.assignments.params[index].code,
-        name: data.name,
-        point: data.point,
-      };
-      const pr = classroom.assignments.params.slice()
-      if (remain >= data.point) {
-        classroom.assignments.params = null;
-        await classroom.save();
-        classroom.assignments = {
-          total: classroom.assignments.total,
-          sum: sum + Number(data.point),
-          params: pr,
-        };
-        await classroom.save();
-        return res.status(201).send(classroom);
-      }
-      // throw new Error({ msg: "Failed", remain: remain, addPoint: data.point })
-      return res
-          .status(400)
-          .send({ msg: "Failed", remain: remain, addPoint: data.point });
-    }
-    return res.status(400).send("No class found!");
-  } catch (e) {
-    console.log("Update fail:", req.body, e);
-    return res.status(400).send(e);
-  }
-});
-
-//delete assignment of class by id
-router.post("/delete-assignment", auth, async (req, res) => {
-  try {
-    const classroom = await ClassRoom.findById(req.body.classroomId);
-    if (classroom) {
-      const index = classroom.assignments.params.findIndex(
-        (assignment) => assignment.code == req.body.assignmentCode
-      );
-      if (index === -1) {
-        return res.status(400).send("No assignment found!");
-      }
-
-      var params = [...classroom.assignments.params];
-      var sum = Number(classroom.assignments.sum);
-      const newSum = sum - Number(params[index].point);
-      params.splice(index, 1);
-      
-      classroom.assignments = {
-        total: classroom.assignments.total,
-        sum: newSum,
-        params: params,
-      };
-
-      await classroom.save();
-      return res.status(201).send(classroom);
-    }
-    return res.status(400).send("No class found!");
-  } catch (e) {
-    console.log("Delete fail:", req.body, e);
-    return res.status(400).send(e);
-  }
-});
 module.exports = router;
