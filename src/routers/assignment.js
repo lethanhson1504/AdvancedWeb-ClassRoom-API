@@ -279,7 +279,7 @@ router.post("/set-student-list", auth, async (req, res) => {
       });
     }
 
-    const unmappedStudents = [];
+    const unmappedStudents = classroom.unmappedStudents;
     async function updateRealname(studentInfo) {
       const user = await User.findByStudentId(studentInfo.studentId);
       console.log(user);
