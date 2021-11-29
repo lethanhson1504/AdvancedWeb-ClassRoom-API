@@ -173,6 +173,14 @@ router.get("/classrooms/join/:classCode", auth, async (req, res) => {
       !classroom.students.toString().includes(userId)
     ) {
       classroom.students = classroom.students.concat(userId);
+
+      const studentUnmapped = classroom.unmappedStudents.find( ({ studentId }) => studentId === req.user.studentId );
+      if (studentUnmapped) {
+        req.user.realName = studentUnmapped.name
+        indexStudentUnmapped = classroom.unmappedStudents.indexOf(studentUnmapped);
+        classroom.unmappedStudents.splice(indexStudentUnmapped, 1); 
+        await req.user.save()
+      }      
       await classroom.save();
     }
     res.status(200).send(classroom);
