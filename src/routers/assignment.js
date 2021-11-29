@@ -347,7 +347,10 @@ router.get("/get-grade-board/:classroomId", auth, async (req, res) => {
       });
     });
 
-    students.sort();
+    
+    students.sort(function(a, b) {
+      return a.studentId - b.studentId;
+    });
 
     const assignments = await Assignment.findById(classroom.assignments._id);
 
