@@ -292,8 +292,15 @@ router.post("/set-student-list", auth, async (req, res) => {
       const index = students.findIndex(
         (student) => student.studentId == studentInfo.studentId
       );
-      if (index === -1 || index == undefined) {
-        unmappedStudents.push(studentInfo);
+      if (index === -1 || index == undefined) {        
+        const unmappedIndex = unmappedStudents.findIndex(
+          (student) => student.studentId == studentInfo.studentId
+        );
+        if (unmappedIndex === -1 || unmappedIndex == undefined) {        
+          unmappedStudents.push(studentInfo);
+        } else {
+          unmappedStudents[unmappedIndex].name = studentInfo.name;
+        }                
       } else {
         updateRealname(studentInfo);
       }
@@ -330,6 +337,7 @@ router.get("/get-grade-board/:classroomId", auth, async (req, res) => {
         total: 0
       });
     }
+    
     classroom.unmappedStudents.forEach((student) => {
       students.push({
         studentId: student.studentId,
