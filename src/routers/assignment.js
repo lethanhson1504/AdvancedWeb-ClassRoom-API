@@ -370,7 +370,7 @@ router.get("/get-grade-board/:classroomId", auth, async (req, res) => {
           this[index].assignmentGrade.push(gradeList[gradeIndex].grade);
           this[index].total += gradeList[gradeIndex].grade
         } else {
-          this[index].assignmentGrade.push(-1);
+          this[index].assignmentGrade.push("");
         }
       })       
     }, students);
