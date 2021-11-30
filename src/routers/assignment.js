@@ -255,7 +255,39 @@ router.get("/grade-list/:classroomId/:assignmentCode", auth, async (req, res) =>
     if (index === -1 || index == undefined) {
       return res.status(400).send("No assignment found!");
     }
-    return res.status(201).send(assignmentCollection.params[index].gradeList);
+
+    const students = [];
+
+    for (let i = 0; i < classroom.students.length; i++) {
+      const user = await User.findById(classroom.students[i]);
+      students.push({
+        studentId: user.studentId,
+        grade: -1        
+      });
+    }
+    
+    classroom.unmappedStudents.forEach((student) => {
+      students.push({
+        studentId: student.studentId,
+        grade: -1
+      });
+    });
+    const gradeList = assignmentCollection.params[index].gradeList;
+    
+    students.sort(function(a, b) {
+      return a.studentId - b.studentId;
+    });
+
+    students.forEach(function (part, stIndex) {            
+        const gradeIndex = gradeList.findIndex(
+          (gradeInfo) => gradeInfo.studentId === part.studentId
+        );        
+        if (gradeIndex >= 0) {
+          this[stIndex].grade = gradeList[gradeIndex].grade;
+        } 
+    }, students);
+
+    return res.status(201).send(students);
   } catch (e) {
     console.log("Set grade list fail fail:", req.body, e);
     return res.status(400).send(e);
@@ -296,7 +328,9 @@ router.post("/set-student-list", auth, async (req, res) => {
         const unmappedIndex = unmappedStudents.findIndex(
           (student) => student.studentId == studentInfo.studentId
         );
-        if (unmappedIndex === -1 || unmappedIndex == undefined) {        
+        if (unmappedIndex === -1 || unmappedIndex == undefined) {
+          //tìm user
+
           unmappedStudents.push(studentInfo);
         } else {
           unmappedStudents[unmappedIndex].name = studentInfo.name;
@@ -377,7 +411,7 @@ router.get("/get-grade-board/:classroomId", auth, async (req, res) => {
 
     return res.status(201).send(students);
   } catch (e) {
-    console.log("Set student list fail:", req.body, e);
+    console.log("Get grade list fail:", req.body, e);
     return res.status(400).send(e);
   }
 });
