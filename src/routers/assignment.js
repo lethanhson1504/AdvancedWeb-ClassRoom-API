@@ -15,7 +15,6 @@ router.get("/assignments/:classroomId", auth, async (req, res) => {
     const classroom = await ClassRoom.findById(req.params.classroomId);
     if (classroom) {
       code = classroom.assignments._id;
-      console.log("Assignment", code);
       result = await Assignment.findById(code);
 
       if (result) {
@@ -169,7 +168,7 @@ router.post("/delete-assignment", auth, async (req, res) => {
       const index = assignmentCollection.params.findIndex(
         (assignment) => assignment._id == req.body.assignmentCode
       );
-      console.log(index);
+
       if (index === -1 || index == undefined) {
         return res.status(400).send("No assignment found!");
       }
@@ -208,24 +207,23 @@ router.post("/set-grade-list", auth, async (req, res) => {
       (assignment) => assignment._id == data.assignmentCode
     );
 
-    console.log(index);
     if (index === -1 || index == undefined) {
       return res.status(400).send("No assignment found!");
     }
 
     // assignmentCollection.params[index].gradeList = data.gradeList;
-    data.gradeList.forEach(gradeInfo => {
+    data.gradeList.forEach((gradeInfo) => {
       const gradeIndex = assignmentCollection.params[index].gradeList.findIndex(
         (grade) => grade.studentId == gradeInfo.studentId
       );
       if (gradeIndex === -1 || gradeIndex == undefined) {
-        assignmentCollection.params[index].gradeList = assignmentCollection.params[index].gradeList.concat(gradeInfo) 
+        assignmentCollection.params[index].gradeList =
+          assignmentCollection.params[index].gradeList.concat(gradeInfo);
       } else {
-        assignmentCollection.params[index].gradeList[gradeIndex].grade = gradeInfo.grade;
+        assignmentCollection.params[index].gradeList[gradeIndex].grade =
+          gradeInfo.grade;
       }
-
-      
-    })
+    });
     await assignmentCollection.save();
     return res.status(201).send(assignmentCollection);
   } catch (e) {
@@ -235,64 +233,67 @@ router.post("/set-grade-list", auth, async (req, res) => {
 });
 
 //get grade list for assigment
-router.get("/grade-list/:classroomId/:assignmentCode", auth, async (req, res) => {
-  try {
-    const classroom = await ClassRoom.findById(req.params.classroomId);
-    if (!classroom) {
-      return res.status(400).send("No class found!");
-    }
+router.get(
+  "/grade-list/:classroomId/:assignmentCode",
+  auth,
+  async (req, res) => {
+    try {
+      const classroom = await ClassRoom.findById(req.params.classroomId);
+      if (!classroom) {
+        return res.status(400).send("No class found!");
+      }
 
-    const assignmentCollection = await Assignment.findById(
-      classroom.assignments._id
-    );
+      const assignmentCollection = await Assignment.findById(
+        classroom.assignments._id
+      );
 
-    const data = req.params;
+      const data = req.params;
 
-    const index = assignmentCollection.params.findIndex(
-      (assignment) => assignment._id == data.assignmentCode
-    );
+      const index = assignmentCollection.params.findIndex(
+        (assignment) => assignment._id == data.assignmentCode
+      );
 
-    if (index === -1 || index == undefined) {
-      return res.status(400).send("No assignment found!");
-    }
+      if (index === -1 || index == undefined) {
+        return res.status(400).send("No assignment found!");
+      }
 
-    const students = [];
+      const students = [];
 
-    for (let i = 0; i < classroom.students.length; i++) {
-      const user = await User.findById(classroom.students[i]);
-      students.push({
-        studentId: user.studentId,
-        grade: -1        
+      for (let i = 0; i < classroom.students.length; i++) {
+        const user = await User.findById(classroom.students[i]);
+        students.push({
+          studentId: user.studentId,
+          grade: -1,
+        });
+      }
+
+      classroom.unmappedStudents.forEach((student) => {
+        students.push({
+          studentId: student.studentId,
+          grade: -1,
+        });
       });
-    }
-    
-    classroom.unmappedStudents.forEach((student) => {
-      students.push({
-        studentId: student.studentId,
-        grade: -1
-      });
-    });
-    const gradeList = assignmentCollection.params[index].gradeList;
-    
-    students.sort(function(a, b) {
-      return a.studentId - b.studentId;
-    });
+      const gradeList = assignmentCollection.params[index].gradeList;
 
-    students.forEach(function (part, stIndex) {            
+      students.sort(function (a, b) {
+        return a.studentId - b.studentId;
+      });
+      students.forEach(function (part, stIndex) {
         const gradeIndex = gradeList.findIndex(
           (gradeInfo) => gradeInfo.studentId === part.studentId
-        );        
+        );
         if (gradeIndex >= 0) {
           this[stIndex].grade = gradeList[gradeIndex].grade;
-        } 
-    }, students);
+        }
+      }, students);
 
-    return res.status(201).send(students);
-  } catch (e) {
-    console.log("Set grade list fail fail:", req.body, e);
-    return res.status(400).send(e);
+      return res.status(201).send(students);
+    } catch (e) {
+      console.log("Set grade list fail fail:", req.body, e);
+      return res.status(400).send(e);
+    }
   }
-});
+);
 
 //set student list
 router.post("/set-student-list", auth, async (req, res) => {
@@ -314,34 +315,40 @@ router.post("/set-student-list", auth, async (req, res) => {
     const unmappedStudents = classroom.unmappedStudents;
     async function updateRealname(studentInfo) {
       const user = await User.findByStudentId(studentInfo.studentId);
-      console.log(user);
       user.realName = studentInfo.name;
       await user.save();
-      console.log(user);
     }
 
-    studentList.forEach((studentInfo) => {
+    async function findSystemUser(studentInfo) {
+      const user = await User.findByStudentId(studentInfo.studentId);
+      if (user !== undefined) {
+        updateRealname(studentInfo);
+        classroom.students.push(user._id);
+        return;
+      }
+      unmappedStudents.push(studentInfo);
+    }
+
+    for (const studentInfo of studentList) {
       const index = students.findIndex(
         (student) => student.studentId == studentInfo.studentId
       );
-      if (index === -1 || index == undefined) {        
+      if (index === -1 || index == undefined) {
         const unmappedIndex = unmappedStudents.findIndex(
           (student) => student.studentId == studentInfo.studentId
         );
         if (unmappedIndex === -1 || unmappedIndex == undefined) {
-          //tìm user
-
-          unmappedStudents.push(studentInfo);
+          await findSystemUser(studentInfo);
+          // unmappedStudents.push(studentInfo);
         } else {
           unmappedStudents[unmappedIndex].name = studentInfo.name;
-        }                
+        }
       } else {
-        updateRealname(studentInfo);
+        await updateRealname(studentInfo);
       }
-    });
+    }
 
-    classroom.unmappedStudents = unmappedStudents;
-
+    classroom.unmappedStudents = unmappedStudents; //unmappedStudents;
     await classroom.save();
 
     return res.status(201).send(classroom);
@@ -354,7 +361,6 @@ router.post("/set-student-list", auth, async (req, res) => {
 //get grade list
 router.get("/get-grade-board/:classroomId", auth, async (req, res) => {
   try {
-    console.log(req.params);
     const classroom = await ClassRoom.findById(req.params.classroomId);
     if (!classroom) {
       return res.status(400).send("No class found!");
@@ -368,21 +374,20 @@ router.get("/get-grade-board/:classroomId", auth, async (req, res) => {
         studentId: user.studentId,
         name: user.realName == undefined ? user.name : user.realName,
         assignmentGrade: [],
-        total: 0
+        total: 0,
       });
     }
-    
+
     classroom.unmappedStudents.forEach((student) => {
       students.push({
         studentId: student.studentId,
         name: student.name,
         assignmentGrade: [],
-        total: 0
+        total: 0,
       });
     });
 
-    
-    students.sort(function(a, b) {
+    students.sort(function (a, b) {
       return a.studentId - b.studentId;
     });
 
@@ -395,18 +400,18 @@ router.get("/get-grade-board/:classroomId", auth, async (req, res) => {
       allGradeList.push(gradeList);
     });
 
-    students.forEach(function (part, index) {      
-      allGradeList.forEach(gradeList => {
+    students.forEach(function (part, index) {
+      allGradeList.forEach((gradeList) => {
         const gradeIndex = gradeList.findIndex(
           (gradeInfo) => gradeInfo.studentId === part.studentId
-        );        
+        );
         if (gradeIndex >= 0) {
           this[index].assignmentGrade.push(gradeList[gradeIndex].grade);
-          this[index].total += gradeList[gradeIndex].grade
+          this[index].total += gradeList[gradeIndex].grade;
         } else {
           this[index].assignmentGrade.push("");
         }
-      })       
+      });
     }, students);
 
     return res.status(201).send(students);
