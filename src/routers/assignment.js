@@ -225,7 +225,39 @@ router.post("/set-grade-list", auth, async (req, res) => {
       }
     });
     await assignmentCollection.save();
-    return res.status(201).send(assignmentCollection);
+
+    const students = [];
+
+    for (let i = 0; i < classroom.students.length; i++) {
+      const user = await User.findById(classroom.students[i]);
+      students.push({
+        studentId: user.studentId,
+        grade: -1,
+      });
+    }
+
+    classroom.unmappedStudents.forEach((student) => {
+      students.push({
+        studentId: student.studentId,
+        grade: -1,
+      });
+    });
+    const gradeList = assignmentCollection.params[index].gradeList;
+
+    students.sort(function (a, b) {
+      return a.studentId - b.studentId;
+    });
+    students.forEach(function (part, stIndex) {
+      const gradeIndex = gradeList.findIndex(
+        (gradeInfo) => gradeInfo.studentId === part.studentId
+      );
+      if (gradeIndex >= 0) {
+        this[stIndex].grade = gradeList[gradeIndex].grade;
+      }
+    }, students);
+
+    return res.status(201).send(students);
+    
   } catch (e) {
     console.log("Set grade list fail fail:", req.body, e);
     return res.status(400).send(e);
