@@ -1,11 +1,14 @@
 const express = require('express')
 const http = require("http");
-const socketIo = require("socket.io");
 
+const socketIo = require("socket.io");
+const classroomSocket = require('./routers/socket');
 require('./db/mongoose')
 const UserRouter = require('./routers/user')
 const ClassRoomRouter = require('./routers/classroom')
 const AssignmentRouter = require('./routers/assignment')
+const NotificationRouter = require('./routers/notification').router
+
 const cors = require('cors')
 const corsOptions ={
   origin:'*', 
@@ -16,7 +19,7 @@ const corsOptions ={
 const app = express()
 const port = process.env.PORT
 const server = http.createServer(app);
-const io = socketIo(server, {
+global.io = socketIo(server, {
   cors: {
     origin: "*",
     methods: ["GET", "POST"]
@@ -24,7 +27,7 @@ const io = socketIo(server, {
 });
 
 // dòng này để start cái socket server
-var socket = require('./routers/socket')(io);
+const socket = classroomSocket(io);
 
 app.use(cors(corsOptions)) 
 app.use(express.json())
@@ -32,6 +35,6 @@ app.use(express.json())
 app.use(UserRouter)
 app.use(ClassRoomRouter)
 app.use(AssignmentRouter)
-
+app.use(NotificationRouter)
 
 server.listen(port, () => console.log(`Server is listening on port ${port}`));

@@ -5,6 +5,7 @@ const router = new express.Router();
 const auth = require("../middleware/auth");
 const { nanoid } = require("nanoid");
 const User = require("../model/user");
+const sendNotif = require("../routers/notification").sendNotif;
 const ObjectID = require("mongodb").ObjectID;
 
 // MARK: Assignment
@@ -53,6 +54,7 @@ router.post("/create-assignment", auth, async (req, res) => {
         assignment.params = assignment.params.concat(newAssignment);
 
         await assignment.save();
+        await sendNotif( req.user.notifications, `Thêm bài tập ${newAssignment.name} cho lớp ${classroom.name} thành công!` )
         return res.status(201).send(assignment);
       }
       return res.status(400).send({
@@ -164,18 +166,7 @@ router.post("/delete-assignment", auth, async (req, res) => {
       );
 
       const data = req.body.assignment;
-
-      const index = assignmentCollection.params.findIndex(
-        (assignment) => assignment._id == req.body.assignmentCode
-      );
-
-      if (index === -1 || index == undefined) {
-        return res.status(400).send("No assignment found!");
-      }
-
-      let sum =
-        assignmentCollection.sum - assignmentCollection.params[index].point;
-      assignmentCollection.params = assignmentCollection.params.slice(index, 1);
+      push
 
       assignmentCollection.sum = sum;
 

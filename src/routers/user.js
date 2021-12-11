@@ -1,5 +1,6 @@
 const express = require("express");
 const User = require("../model/user");
+const Notification = require("../model/notification");
 const ClassRoom = require("../model/classroom");
 const router = new express.Router();
 const auth = require("../middleware/auth");
@@ -159,6 +160,9 @@ router.post("/users", async (req, res) => {
       }
     }
 
+    const notif = new Notification();
+    user.notifications = notif._id;
+    await  notif.save()
     const token = await user.generateAuthToken();
 
     res.status(201).send({ user, token });

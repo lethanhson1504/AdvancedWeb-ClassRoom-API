@@ -1,7 +1,7 @@
 const express = require("express");
 const Assignment = require("../model/assignment");
 const ClassRoom = require("../model/classroom");
-
+const sendNotif = require("../routers/notification").sendNotif;
 const router = new express.Router();
 const auth = require("../middleware/auth");
 const { nanoid } = require("nanoid");
@@ -33,12 +33,12 @@ router.post("/create-classroom", auth, async (req, res) => {
   classroom.teachers = classroom.teachers.concat(teacherId);
   const assignment = new Assignment();
   assignment.classroomId = classroom._id;
-
   classroom.assignments = assignment._id;
 
   try {
     await assignment.save();
     await classroom.save();
+    await sendNotif( req.user.notifications, `Tạo lớp ${classroom.name} thành công!`)
     res.status(201).send(classroom);
   } catch (e) {
     console.log("CREATE CLASS:", e);
@@ -182,6 +182,7 @@ router.get("/classrooms/join/:classCode", auth, async (req, res) => {
         await req.user.save()
       }      
       await classroom.save();
+      await sendNotif( req.user.notifications, `Chào mừng bạn đã đến với lớp ${classroom.name}`)
     }
     res.status(200).send(classroom);
   } catch (e) {
