@@ -13,6 +13,10 @@ const notificationSchema = new mongoose.Schema(
                 time: String
             },
         ],
+        newNotifCount: {
+            type: Number,
+            default: 0
+        }
     },
     {
         timestamps: true,

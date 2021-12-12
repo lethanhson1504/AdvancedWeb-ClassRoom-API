@@ -21,11 +21,10 @@ const sendNotifToUser = async (notifId, message) => {
         var time = date.toLocaleString("vi-VN");
 
         notif.notifications.push({description: message, time: time});
-
-
+        notif.newNotifCount += 1;
         await notif.save()
         for (const clientId of notif.clientId) {
-            io.to(clientId.socketId).emit("newNotif", notif.notifications);
+            io.to(clientId.socketId).emit("newNotif", {count: notif.newNotifCount,notif: notif.notifications});
         }
     }
 }
@@ -38,7 +37,7 @@ router.get("/notifications", auth, async (req, res) => {
             const notification = await Notification.findById(user.notifications._id);
             if (notification) {
 
-                result = notification.notifications;
+                result = {count:notification.newNotifCount, notif: notification.notifications};
 
                 if (result) {
                     return res.status(200).send(result);
@@ -52,5 +51,25 @@ router.get("/notifications", auth, async (req, res) => {
         return res.status(400).send(e);
     }
 });
+
+router.post("/didSeenNotifications", auth, async (req, res) => {
+
+    try {
+        const user = await User.findById(req.user._id)
+        if (user) {
+            const notification = await Notification.findById(user.notifications._id);
+            if (notification) {
+                notification.newNotifCount = 0
+                notification.save()
+                return res.status(200).send();
+            }
+        }
+        return res.status(400).send("Cant not found notifications");
+    } catch (e) {
+        console.log(e);
+        return res.status(400).send(e);
+    }
+});
+
 exports.router = router;
 exports.sendNotif = sendNotifToUser;

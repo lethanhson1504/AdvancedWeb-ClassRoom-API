@@ -26,7 +26,7 @@ const removeSocketClientId = async (clientId) => {
         if (notif && notif !== undefined) {
 
             const array =  notif.clientId
-            var filtered = console.filter(function(value, index, arr){
+            var filtered = array.filter(function(value, index, arr){
                 return value.id != clientId;
             });
             notif.clientId = filtered;
@@ -43,20 +43,22 @@ const io = async (io) => {
     let interval;
 
     io.on("connection", (client) => {
-        // console.log("New client connected", client.id);
-        if (interval) {
-            clearInterval(interval);
-        }
-        interval = setInterval(() => getApiAndEmit(client), 1000);
+        console.log("connect")
+        client.on("onSeen", (bu) => {
+            console.log("on seen", bu)
+            // pushSocketClientId(token, client.id)
+        });
+
+
         client.on("disconnect", () => {
-            // console.log("Client disconnected", client.id);
             // removeSocketClientId(client.id)
-            clearInterval(interval);
         });
 
         client.on("setToken", (token) => {
             pushSocketClientId(token, client.id)
         });
+
+
     });
 
     const getApiAndEmit = (client) => {

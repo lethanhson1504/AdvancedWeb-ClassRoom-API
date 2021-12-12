@@ -54,7 +54,9 @@ router.post("/create-assignment", auth, async (req, res) => {
         assignment.params = assignment.params.concat(newAssignment);
 
         await assignment.save();
+
         await sendNotif( req.user.notifications, `Thêm bài tập ${newAssignment.name} cho lớp ${classroom.name} thành công!` )
+
         return res.status(201).send(assignment);
       }
       return res.status(400).send({
