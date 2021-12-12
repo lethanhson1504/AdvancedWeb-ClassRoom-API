@@ -431,7 +431,10 @@ router.get("/get-grade-board/:classroomId", auth, async (req, res) => {
           (gradeInfo) => gradeInfo.studentId === part.studentId
         );
         if (gradeIndex >= 0) {
-          this[index].assignmentGrade.push(gradeList[gradeIndex].grade);
+          var reviewId = null
+          if (gradeList[gradeIndex].reviewId) {reviewId =  gradeList[gradeIndex].reviewId}
+
+          this[index].assignmentGrade.push({grade: gradeList[gradeIndex].grade, reviewId: reviewId});
           this[index].total += gradeList[gradeIndex].grade;
         } else {
           this[index].assignmentGrade.push("");

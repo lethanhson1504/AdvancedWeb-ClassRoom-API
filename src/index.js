@@ -7,6 +7,7 @@ require('./db/mongoose')
 const UserRouter = require('./routers/user')
 const ClassRoomRouter = require('./routers/classroom')
 const AssignmentRouter = require('./routers/assignment')
+const GradeReviewRouter = require("./routers/gradeReview");
 const NotificationRouter = require('./routers/notification').router
 
 const cors = require('cors')
@@ -36,5 +37,7 @@ app.use(UserRouter)
 app.use(ClassRoomRouter)
 app.use(AssignmentRouter)
 app.use(NotificationRouter)
+app.use(GradeReviewRouter)
+
 
 server.listen(port, () => console.log(`Server is listening on port ${port}`));
