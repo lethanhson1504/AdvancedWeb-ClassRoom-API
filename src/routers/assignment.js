@@ -2,7 +2,7 @@ const express = require("express");
 const ClassRoom = require("../model/classroom");
 const Assignment = require("../model/assignment");
 const router = new express.Router();
-const auth = require("../middleware/auth");
+const { auth } = require("../middleware/auth");
 const { nanoid } = require("nanoid");
 const User = require("../model/user");
 const ObjectID = require("mongodb").ObjectID;
@@ -257,7 +257,7 @@ router.post("/set-grade-list", auth, async (req, res) => {
     }, students);
 
     return res.status(201).send(students);
-    
+
   } catch (e) {
     console.log("Set grade list fail fail:", req.body, e);
     return res.status(400).send(e);

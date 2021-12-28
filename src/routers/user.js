@@ -2,7 +2,7 @@ const express = require("express");
 const User = require("../model/user");
 const ClassRoom = require("../model/classroom");
 const router = new express.Router();
-const auth = require("../middleware/auth");
+const {auth} = require("../middleware/auth");
 const multer = require("multer");
 const sharp = require("sharp");
 

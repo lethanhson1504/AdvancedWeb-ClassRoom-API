@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken')
 const User = require('../model/user')
+const Admin = require('../model/admin')
 
 const auth = async (req, res, next) => {
     try {
@@ -20,4 +21,23 @@ const auth = async (req, res, next) => {
     }
 }
 
-module.exports = auth
+const authAdmin = async (req, res, next) => {
+    try {
+        const token = req.header("Authorization").replace('Bearer ', '')
+        const decode = jwt.verify(token, process.env.JWT_SECRET)
+        const admin = await Admin.findOne({ _id: decode._id, 'tokens.token': token })//.lean()
+
+        if (!admin) {
+            throw new Error("hello world")
+        }
+        req.token = token
+        req.admin = admin
+
+        next()
+    } catch (e) {
+        console.log(e)
+        res.status(401).send({ error: "Please authenticate!" })
+    }
+}
+
+module.exports = { auth, authAdmin }
