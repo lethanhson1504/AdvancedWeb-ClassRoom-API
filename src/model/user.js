@@ -60,7 +60,11 @@ const userSchema = new mongoose.Schema({
     }],
     avatar: {
         type: Buffer
-    }
+    },
+    status: {
+        type: String,
+        default: 'active'
+    },
 }, {
     timestamps: true
 })
