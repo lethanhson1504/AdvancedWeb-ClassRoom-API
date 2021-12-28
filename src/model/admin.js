@@ -16,12 +16,18 @@ const adminSchema = new mongoose.Schema({
         trim: true,
         minlength: 6
     },
+    name: {
+        type: String,
+        required: true
+    },
     tokens: [{
         token: {
             type: String,
             required: true
         }
     }]
+}, {
+    timestamps: true
 })
 
 adminSchema.pre('save', async function (next) {
