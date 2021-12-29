@@ -7,6 +7,8 @@ const router = new express.Router();
 const {auth} = require("../middleware/auth");
 const multer = require("multer");
 const sharp = require("sharp");
+const sendCode = require ('../util/email');
+const { nanoid } = require("nanoid");
 
 //get 1 users with authorization
 router.get("/users/me", auth, async (req, res) => {
@@ -217,6 +219,54 @@ router.get("/users/:id/avatar", async (req, res) => {
     res.send(user.avatar);
   } catch (e) {
     res.status(404).send("This user don't have an avatar");
+  }
+});
+
+router.post("/users/reset-password", async (req, res) => {
+  try {
+    const email = req.body.email
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).send("This account not found!");
+    }
+
+    const code = nanoid(7)
+    user.resetPassCode = code
+    await user.save()
+
+    sendCode(email, code)
+    res.status(200).send("Sent email!")
+
+    setTimeout (async function() {
+      user.resetPassCode = ""
+      await user.save()
+    }, 300000 )
+
+  } catch (e) {
+    res.status(404).send("");
+  }
+});
+
+router.post("/users/check-pass-code", async (req, res) => {
+  try {
+    const email = req.body.email
+    const passCode = req.body.passCode
+    const user = await User.findOne({ email });
+    
+    if (!user) {
+      return res.status(404).send("This account not found!");
+    }
+
+    if (passCode === user.resetPassCode) {
+      user.resetPassCode = ""
+      await user.save()
+      return res.status(200).send(true);
+    }
+    
+    return res.status(400).send(false);
+
+  } catch (e) {
+    res.status(404).send("");
   }
 });
 

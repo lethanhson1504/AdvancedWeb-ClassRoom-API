@@ -65,6 +65,10 @@ const userSchema = new mongoose.Schema({
         type: String,
         default: 'active'
     },
+    resetPassCode: {
+        type: String,
+        default: ""
+    },
 }, {
     timestamps: true
 })
@@ -85,6 +89,7 @@ userSchema.methods.toJSON = function () {
     delete userObeject.password
     delete userObeject.tokens
     delete userObeject.avatar
+    delete userObeject.resetPassCode
 
     return userObeject
 }
