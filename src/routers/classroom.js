@@ -46,7 +46,7 @@ router.post("/create-classroom", auth, async (req, res) => {
   }
 });
 
-//get all classroom
+// get all classroom
 router.get("/classrooms", auth, async (req, res) => {
   const userId = req.user._id;
 

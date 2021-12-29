@@ -4,7 +4,7 @@ const Assignment = require("../model/assignment");
 const Notification = require("../model/notification");
 const GradeReview = require("../model/gradeReview");
 const router = new express.Router();
-const auth = require("../middleware/auth");
+const { auth } = require("../middleware/auth");
 const {nanoid} = require("nanoid");
 const User = require("../model/user");
 const ObjectID = require("mongodb").ObjectID;
@@ -66,7 +66,7 @@ router.post("/add-grade-review-comment", auth, async (req, res) => {
             await gradeReview.save()
             return res.status(200).send(gradeReview);
         }
-        return res.status(400).send("Could no find greade review");
+        return res.status(400).send("Could no find gread review");
 
     } catch (e) {
         console.log(e);
