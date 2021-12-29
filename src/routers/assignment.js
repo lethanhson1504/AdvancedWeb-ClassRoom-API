@@ -161,15 +161,27 @@ router.post("/update-assignment", auth, async (req, res) => {
 //delete assignment of class by id
 router.post("/delete-assignment", auth, async (req, res) => {
   try {
+    
     const classroom = await ClassRoom.findById(req.body.classroomId);
     if (classroom) {
       const assignmentCollection = await Assignment.findById(
         classroom.assignments._id
       );
+      
 
-      const data = req.body.assignment;
-      push
+      const data = req.body.assignment;      
 
+      const index = assignmentCollection.params.findIndex(
+        (assignment) => assignment._id == req.body.assignmentCode
+      );
+      
+      if (index === -1 || index === undefined) {
+        console.log("Notfound", req.body.assignmentCode);
+      }
+
+      let sum = assignmentCollection.sum - assignmentCollection.params[index].point;
+      
+      assignmentCollection.params.splice(index, 1);
       assignmentCollection.sum = sum;
 
       await assignmentCollection.save();
