@@ -217,7 +217,7 @@ router.get("/users/:id/avatar", async (req, res) => {
   }
 });
 
-router.post("/users/reset-password", async (req, res) => {
+router.post("/users/forgot-password", async (req, res) => {
   try {
     const email = req.body.email
     const user = await User.findOne({ email });
@@ -235,30 +235,32 @@ router.post("/users/reset-password", async (req, res) => {
     setTimeout (async function() {
       user.resetPassCode = ""
       await user.save()
-    }, 300000 )
+    }, 180000 )
 
   } catch (e) {
     res.status(404).send("");
   }
 });
 
-router.post("/users/check-pass-code", async (req, res) => {
+router.post("/users/reset-password", async (req, res) => {
   try {
     const email = req.body.email
     const passCode = req.body.passCode
+    const password = req.body.password
     const user = await User.findOne({ email });
-    
+
     if (!user) {
       return res.status(404).send("This account not found!");
     }
 
     if (passCode === user.resetPassCode) {
       user.resetPassCode = ""
+      user.password = password
       await user.save()
-      return res.status(200).send(true);
+      return res.status(200).send("Changed password!");
     }
     
-    return res.status(400).send(false);
+    return res.status(400).send("Wrong reset pass code!");
 
   } catch (e) {
     res.status(404).send("");

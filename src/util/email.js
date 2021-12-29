@@ -17,7 +17,7 @@ const mailOptions = {
 
 function sendCode(emailAdress, code) {
     mailOptions.to = emailAdress
-    mailOptions.text = "Your reset pass code: " + code + ". This code will expire in 5 minutes!"
+    mailOptions.text = "Your reset pass code: " + code + ". This code will expire in 3 minutes!"
     transporter.sendMail(mailOptions, function (error, info) {
         if (error) {
             console.log(error);
