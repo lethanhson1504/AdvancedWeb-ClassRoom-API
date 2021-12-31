@@ -43,6 +43,10 @@ const userSchema = new mongoose.Schema({
             }
         }
     },
+    notifications: {
+        type: Object,
+        required: true
+    },
     studentId: {
         required: false,
         type: String,

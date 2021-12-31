@@ -5,6 +5,7 @@ const router = new express.Router();
 const { auth } = require("../middleware/auth");
 const { nanoid } = require("nanoid");
 const User = require("../model/user");
+const sendNotif = require("../routers/notification").sendNotif;
 const ObjectID = require("mongodb").ObjectID;
 
 // MARK: Assignment
@@ -53,6 +54,9 @@ router.post("/create-assignment", auth, async (req, res) => {
         assignment.params = assignment.params.concat(newAssignment);
 
         await assignment.save();
+
+        await sendNotif( req.user.notifications, `Thêm bài tập ${newAssignment.name} cho lớp ${classroom.name} thành công!` )
+
         return res.status(201).send(assignment);
       }
       return res.status(400).send({
@@ -157,26 +161,27 @@ router.post("/update-assignment", auth, async (req, res) => {
 //delete assignment of class by id
 router.post("/delete-assignment", auth, async (req, res) => {
   try {
+    
     const classroom = await ClassRoom.findById(req.body.classroomId);
     if (classroom) {
       const assignmentCollection = await Assignment.findById(
         classroom.assignments._id
       );
+      
 
-      const data = req.body.assignment;
+      const data = req.body.assignment;      
 
       const index = assignmentCollection.params.findIndex(
         (assignment) => assignment._id == req.body.assignmentCode
       );
-
-      if (index === -1 || index == undefined) {
-        return res.status(400).send("No assignment found!");
+      
+      if (index === -1 || index === undefined) {
+        console.log("Notfound", req.body.assignmentCode);
       }
 
-      let sum =
-        assignmentCollection.sum - assignmentCollection.params[index].point;
-      assignmentCollection.params = assignmentCollection.params.slice(index, 1);
-
+      let sum = assignmentCollection.sum - assignmentCollection.params[index].point;
+      
+      assignmentCollection.params.splice(index, 1);
       assignmentCollection.sum = sum;
 
       await assignmentCollection.save();
@@ -438,7 +443,10 @@ router.get("/get-grade-board/:classroomId", auth, async (req, res) => {
           (gradeInfo) => gradeInfo.studentId === part.studentId
         );
         if (gradeIndex >= 0) {
-          this[index].assignmentGrade.push(gradeList[gradeIndex].grade);
+          var reviewId = null
+          if (gradeList[gradeIndex].reviewId) {reviewId =  gradeList[gradeIndex].reviewId}
+
+          this[index].assignmentGrade.push({grade: gradeList[gradeIndex].grade, reviewId: reviewId});
           this[index].total += gradeList[gradeIndex].grade;
         } else {
           this[index].assignmentGrade.push("");
