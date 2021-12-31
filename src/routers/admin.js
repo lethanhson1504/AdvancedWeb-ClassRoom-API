@@ -43,6 +43,22 @@ router.post("/admin/login", async (req, res) => {
     }
 });
 
+router.post("/admin/:id", authAdmin, async (req, res) => {
+    const _id = req.params.id;
+
+    Admin.findById(_id)
+        .then((result) => {
+            if (!result) {
+                return res.status(404).send("Can not find this user!");
+            }
+
+            res.send(result);
+        })
+        .catch((e) => {
+            res.status(500).send();
+        });
+});
+
 router.get("/admins", authAdmin, async (req, res) => {
     const listAdmin = await Admin.find({}).sort({ createdAt: req.query.sort })
     res.status(200).send(listAdmin)
