@@ -2,6 +2,7 @@ const express = require("express");
 const Admin = require("../model/admin");
 const router = new express.Router();
 const { authAdmin } = require("../middleware/auth");
+const User = require('../model/user')
 
 //create new admin
 router.post("/admin", async (req, res) => {
@@ -60,8 +61,13 @@ router.post("/admin/:id", authAdmin, async (req, res) => {
 });
 
 router.get("/admins", authAdmin, async (req, res) => {
-    const listAdmin = await Admin.find({}).sort({ createdAt: req.query.sort })
-    res.status(200).send(listAdmin)
+    try {
+        const listAdmin = await Admin.find({}).sort({ createdAt: req.query.sort })
+        res.status(200).send(listAdmin)
+    }
+    catch (e) {
+        res.status.send(e)
+    }
 })
 
 router.get("/admins/search", authAdmin, async (req, res) => {
@@ -82,5 +88,16 @@ router.get("/admins/search", authAdmin, async (req, res) => {
         res.status(404).send(e)
     }
 })
+
+router.get("/admins/list-user", authAdmin, async (req, res) => {
+    try {
+        const users = await User.find({}).sort({ createdAt: req.query.sort })
+        return res.status(200).send(users)
+    }
+    catch (e) {
+        res.status(404).send(e)
+    }
+})
+
 
 module.exports = router
