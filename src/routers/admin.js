@@ -44,7 +44,7 @@ router.post("/admin/login", async (req, res) => {
     }
 });
 
-router.post("/admin/:id", authAdmin, async (req, res) => {
+router.get("/admin/:id", authAdmin, async (req, res) => {
     const _id = req.params.id;
 
     Admin.findById(_id)
@@ -98,6 +98,22 @@ router.get("/admins/list-user", authAdmin, async (req, res) => {
         res.status(404).send(e)
     }
 })
+
+router.get("/users/:id", authAdmin, (req, res) => {
+    const _id = req.params.id;
+  
+    User.findById(_id)
+      .then((result) => {
+        if (!result) {
+          return res.status(404).send("Can not find this user!");
+        }
+  
+        res.send(result);
+      })
+      .catch((e) => {
+        res.status(500).send();
+      });
+  });
 
 
 module.exports = router
