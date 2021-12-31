@@ -44,8 +44,27 @@ router.post("/admin/login", async (req, res) => {
 });
 
 router.get("/admins", authAdmin, async (req, res) => {
-    const listAdmin = await Admin.find({}).sort({ createdAt: req.query.createdAt})
+    const listAdmin = await Admin.find({}).sort({ createdAt: req.query.sort })
     res.status(200).send(listAdmin)
+})
+
+router.get("/admins/search", authAdmin, async (req, res) => {
+    try {
+        const searchByName = await Admin.find({ "name": { $regex: req.query.searchText, $options: 'i' } })
+        if (searchByName.length !== 0) {
+            return res.status(200).send(searchByName)
+        }
+
+        const searchByAccount = await Admin.find({ "account": { $regex: req.query.searchText, $options: 'i' } })
+        if (searchByAccount.length !== 0) {
+            return res.status(200).send(searchByAccount)
+        }
+
+        return res.status(404).send("Can not found this user!")
+    }
+    catch (e) {
+        res.status(404).send(e)
+    }
 })
 
 module.exports = router
