@@ -226,21 +226,19 @@ router.post("/users/forgot-password", async (req, res) => {
   try {
     const email = req.body.email
     const user = await User.findOne({ email });
+    console.log(email)
     if (!user) {
       return res.status(404).send("This account not found!");
     }
 
     const code = nanoid(7)
-    user.resetPassCode = code
+    user.resetPassCode.code = code
+    user.resetPassCode.createdAt = Date.now()
+    
     await user.save()
 
     sendCode(email, code)
     res.status(200).send("Sent email!")
-
-    setTimeout (async function() {
-      user.resetPassCode = ""
-      await user.save()
-    }, 180000 )
 
   } catch (e) {
     res.status(404).send("");
@@ -258,14 +256,20 @@ router.post("/users/reset-password", async (req, res) => {
       return res.status(404).send("This account not found!");
     }
 
-    if (passCode === user.resetPassCode) {
-      user.resetPassCode = ""
+    const validTime = (Date.now() - user.resetPassCode.createdAt)/1000/60
+    // console.log(validTime)
+    if(validTime > 3) {
+      return res.status(400).send("Invalid passcode!");
+    }
+
+    if (passCode === user.resetPassCode.code) {
       user.password = password
+      user.resetPassCode.code = ""
       await user.save()
       return res.status(200).send("Changed password!");
     }
     
-    return res.status(400).send("Wrong reset pass code!");
+    return res.status(400).send("Invalid passcode!");
 
   } catch (e) {
     res.status(404).send("");

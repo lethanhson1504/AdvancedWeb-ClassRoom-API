@@ -66,8 +66,13 @@ const userSchema = new mongoose.Schema({
         default: 'active'
     },
     resetPassCode: {
-        type: String,
-        default: ""
+        code: {
+            type: String,
+            default: ""
+        },
+        createdAt: {
+            type: Number
+        }
     },
 }, {
     timestamps: true
