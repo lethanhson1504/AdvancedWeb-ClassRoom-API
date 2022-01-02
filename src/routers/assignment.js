@@ -301,6 +301,7 @@ router.get(
         students.push({
           studentId: user.studentId,
           grade: -1,
+          reviewId: null,
         });
       }
 
@@ -308,6 +309,7 @@ router.get(
         students.push({
           studentId: student.studentId,
           grade: -1,
+          reviewId: null,
         });
       });
       const gradeList = assignmentCollection.params[index].gradeList;
@@ -320,7 +322,10 @@ router.get(
           (gradeInfo) => gradeInfo.studentId === part.studentId
         );
         if (gradeIndex >= 0) {
+          var reviewId = null
+          if (gradeList[gradeIndex].reviewId) {reviewId =  gradeList[gradeIndex].reviewId}
           this[stIndex].grade = gradeList[gradeIndex].grade;
+          this[stIndex].reviewId = reviewId;
         }
       }, students);
 
