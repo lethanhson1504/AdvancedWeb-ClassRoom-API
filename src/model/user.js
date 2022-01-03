@@ -117,6 +117,14 @@ userSchema.statics.findByCredentials = async (email, password) => {
         throw new Error('Unable to login!')
     }
 
+    if (user.status === "lock") {
+        throw new Error("This account has been locked! Can not login")
+    }
+
+    if (user.status === 'ban') {
+        throw new Error("This account has been banned! Can not login")
+    }
+
     const isMatch = await bcrypt.compare(password, user.password)
 
     if (!isMatch) {

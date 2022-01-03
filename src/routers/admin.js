@@ -149,6 +149,47 @@ router.get("/admin/user/lock-account", authAdmin, (req, res) => {
         });
 });
 
+router.get("/admin/user/unlock-account", authAdmin, (req, res) => {
+    const _id = req.query.id;
+
+    User.findById(_id)
+        .then((result) => {
+            if (!result) {
+                return res.status(404).send("Can not find this user!");
+            }
+
+            if(result.status === 'lock') {
+                result.status = "active"
+                result.save();
+            }
+            
+            return res.status(200).send("Unlock acount success!")
+        })
+        .catch((e) => {
+            res.status(500).send();
+        });
+});
+
+
+router.get("/admin/user/ban-account", authAdmin, (req, res) => {
+    const _id = req.query.id;
+
+    User.findById(_id)
+        .then((result) => {
+            if (!result) {
+                return res.status(404).send("Can not find this user!");
+            }
+
+            result.status = 'ban'
+            result.name = 'Ban account'
+            result.studentId = 'Ban account'
+            result.save();
+            return res.status(200).send("Ban acount success!")
+        })
+        .catch((e) => {
+            res.status(500).send();
+        });
+});
 
 router.get("/admin/user/:id", authAdmin, (req, res) => {
     const _id = req.params.id;
