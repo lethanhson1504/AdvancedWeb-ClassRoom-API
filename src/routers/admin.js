@@ -3,6 +3,7 @@ const Admin = require("../model/admin");
 const router = new express.Router();
 const { authAdmin } = require("../middleware/auth");
 const User = require('../model/user')
+const ClassRoom = require("../model/classroom");
 
 
 router.get("/admin/list-user", authAdmin, async (req, res) => {
@@ -67,6 +68,32 @@ router.post("/admin/logout", authAdmin, async (req, res) => {
     }
 });
 
+router.get("/admin/class-list", authAdmin, async (req, res) => {
+    try {
+        const listClassRoom = await ClassRoom.find({}).sort({ createdAt: req.query.sort })
+        res.status(200).send(listClassRoom)
+    }
+    catch (e) {
+        res.status.send(e)
+    }
+})  
+
+router.get("/admin/class/:id", authAdmin, async (req, res) => {
+    const _id = req.params.id;
+
+    ClassRoom.findById(_id)
+        .then((result) => {
+            if (!result) {
+                return res.status(404).send("Can not find this class!");
+            }
+
+            res.send(result);
+        })
+        .catch((e) => {
+            res.status(500).send("error from admin get class by id");
+        });
+})
+
 router.get("/admin/:id", authAdmin, async (req, res) => {
     const _id = req.params.id;
 
@@ -82,6 +109,7 @@ router.get("/admin/:id", authAdmin, async (req, res) => {
             res.status(500).send("error from get admin by id");
         });
 });
+
 
 router.get("/admins", authAdmin, async (req, res) => {
     try {
