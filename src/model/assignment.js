@@ -14,10 +14,18 @@ const assignmentSchema = new mongoose.Schema(
             type: Number,
             default: 0
         },
+        isFinal: {
+            type: Boolean,
+            default: false
+        },
         params: [
             {
                 name: String,
                 point: Number,
+                isFinal: {
+                    type: Boolean,
+                    default: false
+                },
                 gradeList: [
                     {
                         studentId: String,

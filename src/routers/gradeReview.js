@@ -8,6 +8,7 @@ const { auth } = require("../middleware/auth");
 const {nanoid} = require("nanoid");
 const User = require("../model/user");
 const ObjectID = require("mongodb").ObjectID;
+const sendNotif = require("../routers/notification").sendNotif;
 
 router.get("/grade-review-comment/:reviewId", auth, async (req, res) => {
 
@@ -37,18 +38,30 @@ router.post("/grade-review-create", auth, async (req, res) => {
         if (index === -1) {
             return res.status(400).send("Failed to create grade review cant find assingment id");
         }
-
-        const gradeIndex = assignmentCollection.params[index].gradeList.findIndex(
+        const assignment = assignmentCollection.params[index];
+        const gradeIndex = assignment.gradeList.findIndex(
             (gradeInfo) => gradeInfo.studentId === user.studentId
         );
         if (gradeIndex < 0) {
             return res.status(400).send("Failed to create grade review");
         }
         const gradeReview = new GradeReview()
+        classroom.teachers.forEach((teacher) => {
+            gradeReview.relatedUserIds.push(teacher);
+        })
+
         gradeReview.expectedGrade = req.body.component.expectedGrade
         gradeReview.comments.push({name: user.name, comment: req.body.component.comment})
-        await gradeReview.save()
+        await sendNotif( req.user.notifications, `Bạn vừa yêu cầu phúc khảo cho bài tập ${assignment.name}!` )
+
+        for (const id of gradeReview.relatedUserIds) {
+            const notifUser = await User.findById(id)
+            await sendNotif( notifUser.notifications, `${user.name} vừa bình luận vào phiếu phúc khảo` )
+        }
+        gradeReview.relatedUserIds.push(req.user._id);
         assignmentCollection.params[index].gradeList[gradeIndex].reviewId = gradeReview._id
+
+        await gradeReview.save()
         await assignmentCollection.save()
         return res.status(200).send(gradeReview);
     } catch (e) {
@@ -64,10 +77,14 @@ router.post("/add-grade-review-comment", auth, async (req, res) => {
         if (gradeReview) {
             gradeReview.comments.push({name: user.name, comment: req.body.comment})
             await gradeReview.save()
+            for (const id of gradeReview.relatedUserIds) {
+                const notifUser = await User.findById(id)
+                await sendNotif( notifUser.notifications, `${user.name} vừa bình luận vào phiếu phúc khảo` )
+            }
             return res.status(200).send(gradeReview);
         }
-        return res.status(400).send("Could no find gread review");
 
+        return res.status(400).send("Could no find gread review");
     } catch (e) {
         console.log(e);
         return res.status(400).send(e);

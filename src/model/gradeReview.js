@@ -1,29 +1,35 @@
 const mongoose = require("mongoose");
-const {number} = require("sharp/lib/is");
+const { number } = require("sharp/lib/is");
 
 const gradeReviewSchema = new mongoose.Schema(
-    {
-        expectedGrade: Number,
-        comments: [
-            {
-                name: String,
-                comment: String
-            },
-        ],
-    },
-    {
-        timestamps: true,
-    }
+  {
+    expectedGrade: Number,
+    relatedUserIds: [
+      {
+          type: mongoose.Schema.Types.ObjectId,
+          default: [],
+      },
+    ],
+    comments: [
+      {
+        name: String,
+        comment: String,
+      },
+    ],
+  },
+  {
+    timestamps: true,
+  }
 );
 
-gradeReviewSchema.pre('save', async function (next) {
-    const classroom = this
+gradeReviewSchema.pre("save", async function (next) {
+  const classroom = this;
 
-    console.log("update GradeReview!")
+  console.log("update GradeReview!");
 
-    next()
-})
+  next();
+});
 
-const GradeReview = mongoose.model('GradeReview',gradeReviewSchema)
+const GradeReview = mongoose.model("GradeReview", gradeReviewSchema);
 
-module.exports = GradeReview
+module.exports = GradeReview;

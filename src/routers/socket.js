@@ -43,7 +43,6 @@ const io = async (io) => {
     let interval;
 
     io.on("connection", (client) => {
-        console.log("connect")
         client.on("onSeen", (bu) => {
             console.log("on seen", bu)
             // pushSocketClientId(token, client.id)
