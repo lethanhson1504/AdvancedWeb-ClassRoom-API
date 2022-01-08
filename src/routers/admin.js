@@ -78,6 +78,21 @@ router.get("/admin/class-list", authAdmin, async (req, res) => {
     }
 })  
 
+router.get("/admins/class/search", authAdmin, async (req, res) => {
+    try {
+        const searchByName = await ClassRoom.find({ "name": { $regex: req.query.searchText, $options: 'i' } })
+        // console.log("<<<<<<", searchByName)
+        if (searchByName.length !== 0) {
+            return res.status(200).send(searchByName)
+        }
+
+        return res.status(404).send("Can not find this classroom!")
+    }
+    catch (e) {
+        res.status(404).send(e)
+    }
+})
+
 router.get("/admin/class/:id", authAdmin, async (req, res) => {
     const _id = req.params.id;
 
