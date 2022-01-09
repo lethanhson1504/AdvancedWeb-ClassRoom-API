@@ -184,6 +184,7 @@ router.get("/admin/user/lock-account", authAdmin, (req, res) => {
             }
 
             result.status = 'lock'
+            result.tokens = [];
             result.save();
             return res.status(200).send("Lock acount success!")
         })
@@ -226,6 +227,8 @@ router.get("/admin/user/ban-account", authAdmin, (req, res) => {
             result.status = 'ban'
             result.name = 'Ban account'
             result.studentId = 'Ban account'
+            result.tokens = [];
+
             result.save();
             return res.status(200).send("Ban acount success!")
         })
