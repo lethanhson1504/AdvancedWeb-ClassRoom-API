@@ -8,6 +8,10 @@ const auth = async (req, res, next) => {
         const decode = jwt.verify(token, process.env.JWT_SECRET)
         const user = await User.findOne({ _id: decode._id, 'tokens.token': token })//.lean()
 
+        if (user.status === 'lock' || user.status === 'ban') {
+            return res.status(403).send({error: "User has been banned or locked!"})
+        }
+
         if (!user) {
             throw new Error()
         }
